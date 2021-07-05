@@ -3,78 +3,92 @@ import 'package:flutter/widgets.dart';
 import 'package:settings/view/pages/appearance/appearance_page.dart';
 import 'package:settings/view/pages/mouse_and_touchpad/mouse_and_touchpad_page.dart';
 import 'package:settings/view/pages/notifications_page.dart/notifications_page.dart';
-import 'package:settings/view/widgets/menu_item.dart';
+import 'package:settings/view/widgets/page_item.dart';
 
-final menuItems = <MenuItem>[
-  const MenuItem(name: 'WIFI', iconData: Icons.wifi, details: Text('WIFI')),
-  const MenuItem(
-      name: 'Network',
+final pageItems = <PageItem>[
+  PageItem(title: 'WIFI', iconData: Icons.wifi, builder: (_) => Text('WIFI')),
+  PageItem(
+      title: 'Network',
       iconData: Icons.settings_ethernet,
-      details: Text('Network')),
-  const MenuItem(
-      name: 'Bluetooth', iconData: Icons.bluetooth, details: Text('Bluetooth')),
-  const MenuItem(
-      name: 'Wallpaper', iconData: Icons.wallpaper, details: Text('Wallpaper')),
-  const MenuItem(
-      name: 'Appearance',
+      builder: (_) => Text('Network')),
+  PageItem(
+      title: 'Bluetooth',
+      iconData: Icons.bluetooth,
+      builder: (_) => Text('Bluetooth')),
+  PageItem(
+      title: 'Wallpaper',
+      iconData: Icons.wallpaper,
+      builder: (_) => Text('Wallpaper')),
+  PageItem(
+      title: 'Appearance',
       iconData: Icons.theater_comedy,
-      details: AppearancePage()),
-  const MenuItem(
-      name: 'Notifications',
+      builder: (_) => AppearancePage()),
+  PageItem(
+      title: 'Notifications',
       iconData: Icons.notifications,
-      details: NotificationsPage()),
-  const MenuItem(
-      name: 'Search', iconData: Icons.search, details: Text('Search')),
-  const MenuItem(name: 'Apps', iconData: Icons.apps, details: Text('Apps')),
-  const MenuItem(
-      name: 'Security', iconData: Icons.lock, details: Text('Security')),
-  const MenuItem(
-      name: 'Online Accounts',
+      builder: (_) => NotificationsPage()),
+  PageItem(
+      title: 'Search', iconData: Icons.search, builder: (_) => Text('Search')),
+  PageItem(title: 'Apps', iconData: Icons.apps, builder: (_) => Text('Apps')),
+  PageItem(
+      title: 'Security',
+      iconData: Icons.lock,
+      builder: (_) => Text('Security')),
+  PageItem(
+      title: 'Online Accounts',
       iconData: Icons.cloud,
-      details: Text('Online Accounts')),
-  const MenuItem(
-      name: 'Sharing', iconData: Icons.share, details: Text('Sharing')),
-  const MenuItem(
-      name: 'Sound', iconData: Icons.music_note, details: Text('Sound')),
-  const MenuItem(
-      name: 'Energy', iconData: Icons.power, details: Text('Energy')),
-  const MenuItem(
-      name: 'Displays', iconData: Icons.monitor, details: Text('Displays')),
-  const MenuItem(
-      name: 'Mouse and touchpad',
+      builder: (_) => Text('Online Accounts')),
+  PageItem(
+      title: 'Sharing', iconData: Icons.share, builder: (_) => Text('Sharing')),
+  PageItem(
+      title: 'Sound',
+      iconData: Icons.music_note,
+      builder: (_) => Text('Sound')),
+  PageItem(
+      title: 'Energy', iconData: Icons.power, builder: (_) => Text('Energy')),
+  PageItem(
+      title: 'Displays',
+      iconData: Icons.monitor,
+      builder: (_) => Text('Displays')),
+  PageItem(
+      title: 'Mouse and touchpad',
       iconData: Icons.mouse,
-      details: MouseAndTouchpadPage()),
-  const MenuItem(
-      name: 'Keyboard shortcuts',
+      builder: (_) => MouseAndTouchpadPage()),
+  PageItem(
+      title: 'Keyboard shortcuts',
       iconData: Icons.keyboard,
-      details: Text('Keyboard shortcuts')),
-  const MenuItem(
-      name: 'Printers', iconData: Icons.print, details: Text('Printers')),
-  const MenuItem(
-      name: 'Shared devices',
+      builder: (_) => Text('Keyboard shortcuts')),
+  PageItem(
+      title: 'Printers',
+      iconData: Icons.print,
+      builder: (_) => Text('Printers')),
+  PageItem(
+      title: 'Shared devices',
       iconData: Icons.usb,
-      details: Text('Shared devices')),
-  const MenuItem(
-      name: 'Color', iconData: Icons.settings_display, details: Text('Color')),
-  const MenuItem(
-      name: 'Region and language',
+      builder: (_) => Text('Shared devices')),
+  PageItem(
+      title: 'Color',
+      iconData: Icons.settings_display,
+      builder: (_) => Text('Color')),
+  PageItem(
+      title: 'Region and language',
       iconData: Icons.language,
-      details: Text('Region and language')),
-  const MenuItem(
-      name: 'Accessability',
+      builder: (_) => Text('Region and language')),
+  PageItem(
+      title: 'Accessability',
       iconData: Icons.settings_accessibility,
-      details: Text('Accessability')),
-  const MenuItem(
-      name: 'Users',
+      builder: (_) => Text('Accessability')),
+  PageItem(
+      title: 'Users',
       iconData: Icons.supervisor_account,
-      details: Text('Users')),
-  const MenuItem(
-      name: 'Preferred Apps',
+      builder: (_) => Text('Users')),
+  PageItem(
+      title: 'Preferred Apps',
       iconData: Icons.star,
-      details: Text('Preferred Apps')),
-  const MenuItem(
-      name: 'Date and time',
+      builder: (_) => Text('Preferred Apps')),
+  PageItem(
+      title: 'Date and time',
       iconData: Icons.access_time,
-      details: Text('Date and time')),
-  const MenuItem(name: 'Info', iconData: Icons.info, details: Text('Info')),
+      builder: (_) => Text('Date and time')),
+  PageItem(title: 'Info', iconData: Icons.info, builder: (_) => Text('Info')),
 ];
