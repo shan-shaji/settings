@@ -38,15 +38,23 @@ class _BluetoothPageState extends State<BluetoothPage> {
                 future: getDevices(),
                 builder: (context, snapshot) {
                   if (snapshot.hasData) {
-                    children = snapshot.data!
-                        .map((e) => SettingsRow(
-                            actionLabel: e.name,
-                            secondChild: e.connected
-                                ? const Text('connected')
-                                : e.paired || !e.connected
-                                    ? const Text('disconncted')
-                                    : const Text('disconncted')))
-                        .toList();
+                    children = snapshot.data!.map((e) {
+                      final status = e.connected ? 'connected' : 'disconnected';
+
+                      return SettingsRow(
+                          actionLabel: e.name,
+                          secondChild: Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: Text(
+                              status,
+                              style: TextStyle(
+                                  color: Theme.of(context)
+                                      .colorScheme
+                                      .onSurface
+                                      .withOpacity(0.7)),
+                            ),
+                          ));
+                    }).toList();
 
                     return ListView(
                       shrinkWrap: true,
