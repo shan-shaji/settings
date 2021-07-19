@@ -98,6 +98,13 @@ class BluetoothDeviceRow extends StatelessWidget {
         builder: (_) => StatefulBuilder(builder: (context, setState) {
               return AlertDialog(
                 title: Text(device.name),
+                actions: [
+                  OutlinedButton(
+                      onPressed: () {
+                        Navigator.of(context).pop(setState);
+                      },
+                      child: const Text('Close'))
+                ],
                 content: SizedBox(
                   height: 250,
                   width: 300,
