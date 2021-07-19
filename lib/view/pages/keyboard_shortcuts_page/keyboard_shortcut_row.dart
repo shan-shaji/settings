@@ -48,7 +48,7 @@ class _KeyboardShortcutRowState extends State<KeyboardShortcutRow> {
       borderRadius: BorderRadius.circular(4.0),
       onTap: () => showDialog(
           context: context,
-          builder: (_) => StatefulBuilder(builder: (context, setState) {
+          builder: (context) => StatefulBuilder(builder: (context, setState) {
                 return RawKeyboardListener(
                   focusNode: FocusNode(),
                   autofocus: true,

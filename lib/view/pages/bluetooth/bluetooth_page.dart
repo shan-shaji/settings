@@ -38,22 +38,8 @@ class _BluetoothPageState extends State<BluetoothPage> {
                 future: getDevices(),
                 builder: (context, snapshot) {
                   if (snapshot.hasData) {
-                    children = snapshot.data!.map((e) {
-                      final status = e.connected ? 'connected' : 'disconnected';
-
-                      return SettingsRow(
-                          actionLabel: e.name,
-                          secondChild: Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: Text(
-                              status,
-                              style: TextStyle(
-                                  color: Theme.of(context)
-                                      .colorScheme
-                                      .onSurface
-                                      .withOpacity(0.7)),
-                            ),
-                          ));
+                    children = snapshot.data!.map((device) {
+                      return BluetoothDeviceRow(device: device);
                     }).toList();
 
                     return ListView(
@@ -74,5 +60,82 @@ class _BluetoothPageState extends State<BluetoothPage> {
     await client.connect();
 
     return client.devices;
+  }
+}
+
+class BluetoothDeviceRow extends StatelessWidget {
+  const BluetoothDeviceRow({
+    Key? key,
+    required this.device,
+  }) : super(key: key);
+
+  final BlueZDevice device;
+
+  @override
+  Widget build(BuildContext context) {
+    final status = device.connected ? 'connected' : 'disconnected';
+
+    return InkWell(
+      borderRadius: BorderRadius.circular(4.0),
+      onTap: () => showSimpleDeviceDialog(context),
+      child: SettingsRow(
+          actionLabel: device.name,
+          secondChild: Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Text(
+              status,
+              style: TextStyle(
+                  color:
+                      Theme.of(context).colorScheme.onSurface.withOpacity(0.7)),
+            ),
+          )),
+    );
+  }
+
+  void showSimpleDeviceDialog(BuildContext context) {
+    showDialog(
+        context: context,
+        builder: (_) => StatefulBuilder(builder: (context, setState) {
+              return AlertDialog(
+                title: Text(device.name),
+                content: SizedBox(
+                  height: 250,
+                  width: 300,
+                  child: SingleChildScrollView(
+                    child: Column(
+                      children: [
+                        SettingsRow(
+                            actionLabel:
+                                device.connected ? 'Connected' : 'Disconnected',
+                            secondChild: Switch(
+                                value: device.connected,
+                                onChanged: (newValue) async {
+                                  device.connected
+                                      ? await device.disconnect()
+                                      : await device.connect();
+                                  setState(() {});
+                                })),
+                        SettingsRow(
+                            actionLabel: device.paired ? 'Paired' : 'Unpaired',
+                            secondChild: Switch(
+                                value: device.paired,
+                                onChanged: (newValue) async {
+                                  device.paired
+                                      ? await device.cancelPairing()
+                                      : await device.pair();
+                                  setState(() {});
+                                })),
+                        SettingsRow(
+                            actionLabel: 'Address',
+                            secondChild: Text(device.address)),
+                        SettingsRow(
+                            actionLabel: 'Type',
+                            secondChild: Text(device.appearance.toString()))
+                      ],
+                    ),
+                  ),
+                ),
+              );
+            }));
   }
 }
