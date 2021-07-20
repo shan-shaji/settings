@@ -103,11 +103,9 @@ class _BluetoothDeviceRowState extends State<BluetoothDeviceRow> {
                           padding: const EdgeInsets.all(8),
                           child: SizedBox(
                             width: 300,
-                            child: OutlinedButton(
+                            child: TextButton(
                                 onPressed: () => print('remove'),
-                                child: Text('Remove device',
-                                    style: TextStyle(
-                                        color: Theme.of(context).errorColor))),
+                                child: const Text('Remove device')),
                           ),
                         )
                       ],
