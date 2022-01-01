@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:gsettings/gsettings.dart';
 import 'package:nm/nm.dart';
 import 'package:safe_change_notifier/safe_change_notifier.dart';
 import 'package:settings/services/bluetooth_service.dart';
@@ -21,10 +20,13 @@ class SuspendModel extends SafeChangeNotifier {
         _sessionSettings = settings.lookup(_kSessionSchema),
         _powerService = power,
         _bluetoothService = bluetooth,
-        _networkManager = network;
+        _networkManager = network {
+    _daemonSettings?.addListener(notifyListeners);
+    _sessionSettings?.addListener(notifyListeners);
+  }
 
-  final GSettings? _daemonSettings;
-  final GSettings? _sessionSettings;
+  final Settings? _daemonSettings;
+  final Settings? _sessionSettings;
   final BluetoothService _bluetoothService;
   final NetworkManagerClient _networkManager;
   final PowerSettingsService _powerService;
@@ -54,6 +56,8 @@ class SuspendModel extends SafeChangeNotifier {
 
   @override
   Future<void> dispose() async {
+    _daemonSettings?.removeListener(notifyListeners);
+    _sessionSettings?.removeListener(notifyListeners);
     await _airplaneMode?.cancel();
     await _screenBrightness?.cancel();
     await _keyboardBrightness?.cancel();
@@ -72,8 +76,10 @@ class SuspendModel extends SafeChangeNotifier {
     notifyListeners();
   }
 
-  int? get idleDelay =>
+  int? get _realIdleDelay =>
       IdleDelay.validate(_sessionSettings?.intValue('idle-delay'));
+  int? get idleDelay =>
+      IdleDelay.values.contains(_realIdleDelay) ? _realIdleDelay : null;
   void setIdleDelay(int? value) {
     if (value == null) return;
     _sessionSettings?.setValue('idle-delay', value);
@@ -105,9 +111,9 @@ class SuspendModel extends SafeChangeNotifier {
   }
 
   SleepInactiveType? _sleepInactiveType(String key) =>
-      (_daemonSettings?.enumValue(key) ?? -1).toSleepInactiveType();
+      _daemonSettings?.stringValue(key)?.toSleepInactiveType();
   void _setSleepInactiveType(String key, SleepInactiveType value) {
-    _daemonSettings?.setEnumValue(key, value.index);
+    _daemonSettings?.setValue(key, value.name);
     notifyListeners();
   }
 

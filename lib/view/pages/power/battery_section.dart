@@ -3,7 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:settings/view/pages/power/battery_model.dart';
 import 'package:settings/view/pages/power/battery_widgets.dart';
 import 'package:upower/upower.dart';
-import 'package:yaru/yaru.dart' as yaru;
+import 'package:yaru/yaru.dart';
 import 'package:yaru_widgets/yaru_widgets.dart';
 
 class BatterySection extends StatefulWidget {
@@ -37,12 +37,12 @@ class _BatterySectionState extends State<BatterySection> {
       children: <Widget>[
         Padding(
           padding: const EdgeInsets.all(8.0),
-          child: LinearProgressIndicator(
+          child: YaruLinearProgressIndicator(
               value: model.percentage / 100.0,
               color: model.percentage > 80.0
-                  ? yaru.Colors.green
+                  ? YaruColors.green
                   : model.percentage < 30.0
-                      ? Colors.red
+                      ? YaruColors.red
                       : Colors.amber),
         ),
         Padding(

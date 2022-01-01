@@ -2,9 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:settings/view/pages/accessibility/accessibility_page.dart';
 import 'package:settings/view/pages/appearance/appearance_page.dart';
+import 'package:settings/view/pages/bluetooth/bluetooth_page.dart';
 import 'package:settings/view/pages/info/info_page.dart';
 import 'package:settings/view/pages/keyboard_shortcuts/keyboard_shortcuts_page.dart';
 import 'package:settings/view/pages/mouse_and_touchpad/mouse_and_touchpad_page.dart';
+import 'package:settings/view/pages/multitasking/multi_tasking_page.dart';
 import 'package:settings/view/pages/removable_media/removable_media_page.dart';
 import 'package:settings/view/pages/notifications/notifications_page.dart';
 import 'package:settings/view/pages/power/power_page.dart';
@@ -20,10 +22,10 @@ final pageItems = <YaruPageItem>[
     iconData: YaruIcons.network,
     builder: ConnectionsPage.create,
   ),
-  YaruPageItem(
+  const YaruPageItem(
     title: 'Bluetooth',
     iconData: YaruIcons.bluetooth,
-    builder: (_) => const Text('Bluetooth'),
+    builder: BluetoothPage.create,
   ),
   const YaruPageItem(
     title: 'Wallpaper',
@@ -35,6 +37,10 @@ final pageItems = <YaruPageItem>[
     iconData: YaruIcons.desktop_panel_look,
     builder: AppearancePage.create,
   ),
+  const YaruPageItem(
+      title: 'Multi-tasking',
+      builder: MultiTaskingPage.create,
+      iconData: YaruIcons.windows),
   const YaruPageItem(
     title: 'Notifications',
     iconData: YaruIcons.notification,
