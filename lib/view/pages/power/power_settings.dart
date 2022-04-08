@@ -1,4 +1,5 @@
 import 'package:flutter/widgets.dart';
+import 'package:settings/l10n/l10n.dart';
 
 enum AutomaticSuspend {
   off,
@@ -19,7 +20,7 @@ extension AutomaticSuspendL10n on AutomaticSuspend {
       case AutomaticSuspend.both:
         return 'On';
       default:
-        return 'Unknown';
+        return context.l10n.unknown;
     }
   }
 }
@@ -73,6 +74,21 @@ class SuspendDelay {
     90 * 60,
     100 * 60,
     120 * 60,
+  ];
+
+  static int? validate(int? delay) => values.contains(delay) ? delay : null;
+}
+
+class ScreenLockDelay {
+  static const values = <int>[
+    30,
+    1 * 60,
+    2 * 60,
+    3 * 60,
+    5 * 60,
+    30 * 60,
+    60 * 60,
+    0,
   ];
 
   static int? validate(int? delay) => values.contains(delay) ? delay : null;

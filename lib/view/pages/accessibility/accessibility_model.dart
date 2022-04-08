@@ -17,6 +17,7 @@ class AccessibilityModel extends ChangeNotifier {
   static const _crossHairsClipKey = 'cross-hairs-clip';
   static const _crossHairsThicknessKey = 'cross-hairs-thickness';
   static const _crossHairsLengthKey = 'cross-hairs-length';
+  static const _crossHairsColor = 'cross-hairs-color';
   static const _inverseLightnessKey = 'invert-lightness';
   static const _brightnessRedKey = 'brightness-red';
   static const _brightnessGreenKey = 'brightness-green';
@@ -265,6 +266,14 @@ class AccessibilityModel extends ChangeNotifier {
     notifyListeners();
   }
 
+  String? get crossHairsColor =>
+      _a11yMagnifierSettings?.stringValue(_crossHairsColor);
+
+  void setCrossHairsColor(String value) {
+    _a11yMagnifierSettings?.setValue(_crossHairsColor, value);
+    notifyListeners();
+  }
+
   bool? get inverseLightness =>
       _a11yMagnifierSettings?.boolValue(_inverseLightnessKey);
 
@@ -351,7 +360,8 @@ class AccessibilityModel extends ChangeNotifier {
       _peripheralsKeyboardSettings?.intValue(_delayKeyboardKey)?.toDouble();
 
   void setDelay(double value) {
-    _peripheralsKeyboardSettings?.setValue(_delayKeyboardKey, value.toInt());
+    _peripheralsKeyboardSettings?.setUint32Value(
+        _delayKeyboardKey, value.toInt());
     notifyListeners();
   }
 
@@ -360,7 +370,7 @@ class AccessibilityModel extends ChangeNotifier {
       ?.toDouble();
 
   void setInterval(double value) {
-    _peripheralsKeyboardSettings?.setValue(
+    _peripheralsKeyboardSettings?.setUint32Value(
         _repeatIntervalKeyboardKey, value.toInt());
     notifyListeners();
   }
@@ -379,6 +389,9 @@ class AccessibilityModel extends ChangeNotifier {
     _interfaceSettings?.setValue(_cursorBlinkTimeKey, value.toInt());
     notifyListeners();
   }
+
+  bool get typingAssistAvailable =>
+      stickyKeys != null || slowKeys != null || bounceKeys != null;
 
   bool get _typingAssist =>
       (stickyKeys ?? false) || (slowKeys ?? false) || (bounceKeys ?? false);
@@ -501,10 +514,13 @@ class AccessibilityModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  bool get clickAssist =>
+  bool get clickAssistAvailable =>
+      simulatedSecondaryClick != null || dwellClick != null;
+
+  bool get _clickAssist =>
       (simulatedSecondaryClick ?? false) || (dwellClick ?? false);
 
-  String get clickAssistString => clickAssist ? 'On' : 'Off';
+  String get clickAssistString => _clickAssist ? 'On' : 'Off';
 
   bool? get simulatedSecondaryClick =>
       _a11yMouseSettings?.boolValue(_secondaryClickEnabledKey);

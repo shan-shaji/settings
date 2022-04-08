@@ -9,23 +9,29 @@ import 'package:path_provider/path_provider.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
+const gnomeWallpaperSuffix = 'file://';
+const _gnomeUserWallpaperLocation = '/.local/share/backgrounds/';
+const _bingApiUrl =
+    'https://www.bing.com/HPImageArchive.aspx?format=js&idx=0&n=1&mkt=en-US';
+const _bingUrl = 'http://www.bing.com';
+const _nasaUrl =
+    'https://api.nasa.gov/planetary/apod?api_key=PdQXYMNV2kT9atjMjNI9gbzLqe7qF6TcEHXhexXg';
+
 class WallpaperModel extends SafeChangeNotifier {
   final Settings? _wallpaperSettings;
   static const _pictureUriKey = 'picture-uri';
+  static const _pictureUriDarkKey = 'picture-uri-dark';
+
   static const _preinstalledWallpapersDir = '/usr/share/backgrounds';
   static const _colorShadingTypeKey = 'color-shading-type';
   static const _primaryColorKey = 'primary-color';
   static const _secondaryColorKey = 'secondary-color';
-
-  //TODO: Sync the locale of the image with the device's locale
-  static const String _bingImageAddress =
-      'https://www.bing.com/HPImageArchive.aspx?format=js&idx=0&n=1&mkt=en-US';
-  static const String _bingAddress = 'http://www.bing.com';
-
+  String errorMessage = '';
   WallpaperMode wallpaperMode = WallpaperMode.custom;
+  ImageOfTheDayProvider imageOfTheDayProvider = ImageOfTheDayProvider.bing;
 
   final String? _userWallpapersDir =
-      Platform.environment['HOME']! + '/.local/share/backgrounds/';
+      Platform.environment['HOME']! + _gnomeUserWallpaperLocation;
 
   WallpaperModel(SettingsService service)
       : _wallpaperSettings = service.lookup(schemaBackground) {
@@ -39,62 +45,72 @@ class WallpaperModel extends SafeChangeNotifier {
   }
 
   String get pictureUri =>
-      _wallpaperSettings!.stringValue(_pictureUriKey) ?? '';
+      _wallpaperSettings?.stringValue(_pictureUriKey) ?? '';
 
   set pictureUri(String picPathString) {
-    _wallpaperSettings!.setValue(
-        _pictureUriKey, picPathString.isEmpty ? '' : 'file://' + picPathString);
+    _wallpaperSettings?.setValue(_pictureUriKey,
+        picPathString.isEmpty ? '' : gnomeWallpaperSuffix + picPathString);
+    notifyListeners();
+  }
+
+  String get pictureUriDark =>
+      _wallpaperSettings?.stringValue(_pictureUriDarkKey) ?? '';
+
+  set pictureUriDark(String picPathString) {
+    _wallpaperSettings?.setValue(_pictureUriDarkKey,
+        picPathString.isEmpty ? '' : gnomeWallpaperSuffix + picPathString);
     notifyListeners();
   }
 
   Future<void> copyToCollection(String picPathString) async {
     File image = File(picPathString);
+    if (_userWallpapersDir == null) return;
     await image
         .copy(_userWallpapersDir! + File(picPathString).uri.pathSegments.last);
     notifyListeners();
   }
 
   Future<void> removeFromCollection(String picPathString) async {
-    final purePath = picPathString.replaceAll('file://', '');
+    final purePath = picPathString.replaceAll(gnomeWallpaperSuffix, '');
     File image = File(purePath);
     await image.delete();
     notifyListeners();
   }
 
-  Future<List<String>> get preInstalledBackgrounds async {
+  Future<List<String>?> get preInstalledBackgrounds async {
     return (await getImages(_preinstalledWallpapersDir))
-        .map((e) => e.path)
+        ?.map((e) => e.path)
         .toList();
   }
 
-  Future<List<String>> get customBackgrounds async {
-    return (await getImages(_userWallpapersDir!)).map((e) => e.path).toList();
+  Future<List<String>?> get customBackgrounds async {
+    return (await getImages(_userWallpapersDir!))?.map((e) => e.path).toList();
   }
 
-  Future<Iterable<File>> getImages(String dir) async {
+  Future<Iterable<File>?> getImages(String dir) async {
     return (await Directory(dir).list().toList())
         .whereType<File>()
         .where((element) => lookupMimeType(element.path)!.startsWith('image/'));
   }
 
   String get primaryColor =>
-      _wallpaperSettings!.stringValue(_primaryColorKey) ?? '';
+      _wallpaperSettings?.stringValue(_primaryColorKey) ?? '';
 
   set primaryColor(String colorHexValueString) {
-    _wallpaperSettings!.setValue(_primaryColorKey, colorHexValueString);
+    _wallpaperSettings?.setValue(_primaryColorKey, colorHexValueString);
     notifyListeners();
   }
 
   String get secondaryColor =>
-      _wallpaperSettings!.stringValue(_secondaryColorKey) ?? '';
+      _wallpaperSettings?.stringValue(_secondaryColorKey) ?? '';
 
   set secondaryColor(String colorHexValueString) {
-    _wallpaperSettings!.setValue(_secondaryColorKey, colorHexValueString);
+    _wallpaperSettings?.setValue(_secondaryColorKey, colorHexValueString);
     notifyListeners();
   }
 
   ColorShadingType get colorShadingType {
-    final type = _wallpaperSettings!.stringValue(_colorShadingTypeKey);
+    final type = _wallpaperSettings?.stringValue(_colorShadingTypeKey);
     return type == 'solid'
         ? ColorShadingType.solid
         : type == 'vertical'
@@ -105,13 +121,13 @@ class WallpaperModel extends SafeChangeNotifier {
   set colorShadingType(ColorShadingType? colorShadingType) {
     switch (colorShadingType) {
       case ColorShadingType.horizontal:
-        _wallpaperSettings!.setValue(_colorShadingTypeKey, 'horizontal');
+        _wallpaperSettings?.setValue(_colorShadingTypeKey, 'horizontal');
         break;
       case ColorShadingType.vertical:
-        _wallpaperSettings!.setValue(_colorShadingTypeKey, 'vertical');
+        _wallpaperSettings?.setValue(_colorShadingTypeKey, 'vertical');
         break;
       case ColorShadingType.solid:
-        _wallpaperSettings!.setValue(_colorShadingTypeKey, 'solid');
+        _wallpaperSettings?.setValue(_colorShadingTypeKey, 'solid');
         break;
       case null:
         return;
@@ -125,6 +141,7 @@ class WallpaperModel extends SafeChangeNotifier {
     switch (wallpaperMode) {
       case WallpaperMode.solid:
         pictureUri = '';
+        pictureUriDark = '';
         break;
       case WallpaperMode.custom:
         if (pictureUri.isEmpty) {
@@ -132,7 +149,7 @@ class WallpaperModel extends SafeChangeNotifier {
         }
         break;
       case WallpaperMode.imageOfTheDay:
-        refreshBingWallpaper();
+        setUrlWallpaperProvider(imageOfTheDayProvider);
         break;
     }
 
@@ -141,34 +158,68 @@ class WallpaperModel extends SafeChangeNotifier {
 
   void _setFirstWallpaper() async {
     final list = await preInstalledBackgrounds;
-    pictureUri = list.first;
+    pictureUri = list?.first ?? '';
   }
 
-  static Future<String> getBingImageUrl() async {
-    http.Response imageMetadataResponse =
-        await http.get(Uri.parse(_bingImageAddress));
-    return _bingAddress +
-        json.decode(imageMetadataResponse.body)['images'][0]['url'];
+  Future<void> refreshUrlWallpaper() async {
+    await setUrlWallpaperProvider(imageOfTheDayProvider);
   }
 
-  Future<void> refreshBingWallpaper() async {
-    final Directory directory = await getApplicationDocumentsDirectory();
+  Future<void> setUrlWallpaperProvider(
+      ImageOfTheDayProvider newImageOfTheDayProvider) async {
+    errorMessage = '';
+    //Set the new provider
+    imageOfTheDayProvider = newImageOfTheDayProvider;
 
-    final file = File('${directory.path}/bing.jpeg');
+    // Load the user's Documents Directory to store the downloaded wallpapers
+    final directory = await getApplicationDocumentsDirectory();
+    final file = File('${directory.path}/${imageOfTheDayProvider.name}.jpeg');
+
+    final Map providers = {
+      'bing': {
+        'apiUrl': _bingApiUrl,
+        'getImageUrl': (jsonData) {
+          return _bingUrl + json.decode(jsonData.body)['images'][0]['url'];
+        }
+      },
+      'nasa': {
+        'apiUrl': _nasaUrl, //The api uses my own api_key
+        'getImageUrl': (jsonData) {
+          return json.decode(jsonData.body)['url'];
+        }
+      },
+    };
+
+    //Get the url of the day using the apiUrl in the providers Map
+    Future<String> getImageUrl() async {
+      Map currentProvider = providers[imageOfTheDayProvider.name];
+      http.Response imageMetadataResponse =
+          await http.get(Uri.parse(currentProvider['apiUrl']));
+      return currentProvider['getImageUrl'](imageMetadataResponse);
+    }
+
+    String imageUrl = '';
+    imageUrl = await getImageUrl().onError((error, stackTrace) {
+      return errorMessage = error.toString();
+    });
 
     // Refetch if the image doesn't exist or the current image is older than a day
-    bool shouldRefetch =
-        !file.existsSync() || file.lastModifiedSync().day != DateTime.now().day;
-
-    if (shouldRefetch) {
-      var imageResponse = await http.get(Uri.parse(await getBingImageUrl()));
+    if (!file.existsSync() ||
+        file.lastModifiedSync().day != DateTime.now().day) {
+      var imageResponse = await http.get(Uri.parse(imageUrl));
       await file.writeAsBytes(imageResponse.bodyBytes);
     }
 
-    pictureUri = '${directory.path}/bing.jpeg';
+    // Set the wallpaper to the downloaded image path
+    pictureUri = file.path;
   }
 }
 
 enum ColorShadingType { solid, vertical, horizontal }
 
 enum WallpaperMode { solid, custom, imageOfTheDay }
+
+enum ImageOfTheDayProvider {
+  bing,
+  nasa,
+}

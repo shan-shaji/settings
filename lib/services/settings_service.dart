@@ -55,15 +55,17 @@ class Settings {
   T? getValue<T>(String key) => _values[key] ?? _updateValue(key);
 
   T? _updateValue<T>(String key) {
+    T? value;
     try {
       _settings.get(key).then((v) {
-        final value = v.toNative() as T?;
+        value = v.toNative() as T?;
         if (_values[key] != value) {
           _values[key] = value;
           notifyListeners();
         }
       });
     } on GSettingsUnknownKeyException catch (_) {}
+    return value;
   }
 
   Future<void> setValue<T>(String key, T value) async {
@@ -87,6 +89,14 @@ class Settings {
       return _settings.set(key, DBusArray.string(value));
     }
     throw UnsupportedError('Unsupported type: $T');
+  }
+
+  Future<void> setUint32Value(String key, int value) async {
+    if (_values[key] == value) {
+      return;
+    }
+    _values[key] = value;
+    _settings.set(key, DBusUint32(value));
   }
 
   Future<void> resetValue(String key) {
