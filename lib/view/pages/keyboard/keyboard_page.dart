@@ -38,7 +38,10 @@ class _KeyboardPageState extends State<KeyboardPage>
   @override
   Widget build(BuildContext context) {
     return const YaruTabbedPage(
-      tabIcons: [YaruIcons.input_keyboard, YaruIcons.keyboard_shortcuts],
+      tabIcons: [
+        Icon(YaruIcons.keyboard),
+        Icon(YaruIcons.keyboard_shortcuts),
+      ],
       tabTitles: ['Keyboard Settings', 'Keyboard Shortcuts'],
       views: [KeyboardSettingsPage(), KeyboardShortcutsPage()],
       width: kDefaultWidth,

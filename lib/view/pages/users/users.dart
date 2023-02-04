@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:settings/l10n/l10n.dart';
-import 'package:yaru_widgets/yaru_widgets.dart';
+import 'package:settings/view/pages/settings_page.dart';
 
 class UsersPage extends StatelessWidget {
   const UsersPage({Key? key}) : super(key: key);
@@ -17,10 +17,12 @@ class UsersPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return YaruPage(children: [
-      Center(
-        child: Text(context.l10n.usersPageTitle),
-      )
-    ]);
+    return SettingsPage(
+      children: [
+        Center(
+          child: Text(context.l10n.usersPageTitle),
+        )
+      ],
+    );
   }
 }

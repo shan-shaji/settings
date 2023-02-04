@@ -3,7 +3,8 @@ import 'package:provider/provider.dart';
 import 'package:settings/constants.dart';
 import 'package:settings/services/settings_service.dart';
 import 'package:settings/view/pages/notifications/notifications_model.dart';
-import 'package:yaru_widgets/yaru_widgets.dart';
+import 'package:settings/view/settings_section.dart';
+import 'package:yaru_settings/yaru_settings.dart';
 
 class AppNotificationsSection extends StatelessWidget {
   const AppNotificationsSection({Key? key}) : super(key: key);
@@ -12,12 +13,14 @@ class AppNotificationsSection extends StatelessWidget {
   Widget build(BuildContext context) {
     final model = context.watch<NotificationsModel>();
 
-    return YaruSection(
+    return SettingsSection(
       width: kDefaultWidth,
-      headline: 'App notifications',
+      headline: const Text('App notifications'),
       children: model.applications
-              ?.map((appId) =>
-                  AppNotificationsSettingRow.create(context, appId: appId))
+              ?.map(
+                (appId) =>
+                    AppNotificationsSettingRow.create(context, appId: appId),
+              )
               .toList() ??
           const [Text('Schema not installed ')],
     );

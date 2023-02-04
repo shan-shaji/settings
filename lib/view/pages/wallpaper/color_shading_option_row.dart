@@ -25,53 +25,51 @@ class ColorShadingOptionRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final model = context.read<WallpaperModel>();
-    return YaruRow(
+    return SizedBox(
       width: width,
-      enabled: true,
-      trailingWidget: Text(actionLabel),
-      description: actionDescription,
-      actionWidget: Row(
-        children: [
-          DropdownButton<ColorShadingType>(
-            onChanged: (value) => model.colorShadingType = value,
-            value: value,
-            items: [
-              DropdownMenuItem(
-                child: Text(context.l10n.wallpaperPageSolid),
-                value: ColorShadingType.solid,
-              ),
-              DropdownMenuItem(
-                child: Text(context.l10n.wallpaperPageHorizontalGradient),
-                value: ColorShadingType.horizontal,
-              ),
-              DropdownMenuItem(
-                child: Text(context.l10n.wallpaperPageVerticalGradient),
-                value: ColorShadingType.vertical,
-              ),
-            ],
-          ),
-          const SizedBox(width: 8.0),
-          YaruColorPickerButton(
-            color: colorFromHex(model.primaryColor),
-            onPressed: () async {
-              final colorBeforeDialog = model.primaryColor;
-              if (!(await colorPickerDialog(context, true))) {
-                model.primaryColor = colorBeforeDialog;
-              }
-            },
-          ),
-          if (model.colorShadingType != ColorShadingType.solid)
+      child: YaruTile(
+        title: Text(actionLabel),
+        subtitle: actionDescription != null ? Text(actionDescription!) : null,
+        trailing: Row(
+          children: [
+            YaruPopupMenuButton<ColorShadingType>(
+              initialValue: model.colorShadingType,
+              child: Text(model.colorShadingType.localize(context.l10n)),
+              itemBuilder: (context) {
+                return [
+                  for (final type in ColorShadingType.values)
+                    PopupMenuItem(
+                      value: type,
+                      onTap: () => model.colorShadingType = type,
+                      child: Text(type.localize(context.l10n)),
+                    )
+                ];
+              },
+            ),
             const SizedBox(width: 8.0),
-          if (model.colorShadingType != ColorShadingType.solid)
-            YaruColorPickerButton(
+            YaruOptionButton.color(
+              color: colorFromHex(model.primaryColor),
+              onPressed: () async {
+                final colorBeforeDialog = model.primaryColor;
+                if (!(await colorPickerDialog(context, true))) {
+                  model.primaryColor = colorBeforeDialog;
+                }
+              },
+            ),
+            if (model.colorShadingType != ColorShadingType.solid)
+              const SizedBox(width: 8.0),
+            if (model.colorShadingType != ColorShadingType.solid)
+              YaruOptionButton.color(
                 color: colorFromHex(model.secondaryColor),
                 onPressed: () async {
                   final colorBeforeDialog = model.secondaryColor;
                   if (!(await colorPickerDialog(context, false))) {
                     model.secondaryColor = colorBeforeDialog;
                   }
-                }),
-        ],
+                },
+              ),
+          ],
+        ),
       ),
     );
   }

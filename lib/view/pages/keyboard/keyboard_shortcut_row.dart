@@ -25,13 +25,13 @@ class _KeyboardShortcutRowState extends State<KeyboardShortcutRow> {
   Widget build(BuildContext context) {
     final model = context.watch<KeyboardShortcutsModel>();
     final shortcut = context.select<KeyboardShortcutsModel, List<String>>(
-        (model) => model.getShortcutStrings(widget.shortcutId));
+      (model) => model.getShortcutStrings(widget.shortcutId),
+    );
 
     return InkWell(
-      child: YaruRow(
-        enabled: true,
-        trailingWidget: Text(widget.label),
-        actionWidget: Row(
+      child: YaruTile(
+        title: Text(widget.label),
+        trailing: Row(
           children: [
             for (var string in shortcut)
               Card(
@@ -40,10 +40,11 @@ class _KeyboardShortcutRowState extends State<KeyboardShortcutRow> {
                   child: Text(
                     string,
                     style: TextStyle(
-                        color: Theme.of(context)
-                            .colorScheme
-                            .onSurface
-                            .withOpacity(0.7)),
+                      color: Theme.of(context)
+                          .colorScheme
+                          .onSurface
+                          .withOpacity(0.7),
+                    ),
                   ),
                 ),
               )
@@ -51,31 +52,34 @@ class _KeyboardShortcutRowState extends State<KeyboardShortcutRow> {
         ),
       ),
       borderRadius: BorderRadius.circular(4.0),
-      onTap: () {
+      onTap: () async {
         final oldShortcut = model.getShortcutStrings(widget.shortcutId);
-        // TODO: grab the keyboard from gnome-shell
+        await model.grabKeyboard();
         showDialog<List<String>>(
           context: context,
-          builder: (_) => StatefulBuilder(builder: (context, setState) {
-            return RawKeyboardListener(
-              focusNode: FocusNode(),
-              autofocus: true,
-              onKey: (event) {
-                if (event.logicalKey != LogicalKeyboardKey.escape &&
-                    !keys.contains(event.logicalKey) &&
-                    keys.length < 4) {
-                  setState(() => keys.add(event.logicalKey));
-                }
-              },
-              child: KeyboardShortcutDialog(
-                keys: keys,
-                oldShortcut: oldShortcut,
-              ),
-            );
-          }),
+          builder: (_) => StatefulBuilder(
+            builder: (context, setState) {
+              return RawKeyboardListener(
+                focusNode: FocusNode(),
+                autofocus: true,
+                onKey: (event) {
+                  if (event.logicalKey != LogicalKeyboardKey.escape &&
+                      !keys.contains(event.logicalKey) &&
+                      keys.length < 4) {
+                    setState(() => keys.add(event.logicalKey));
+                  }
+                },
+                child: KeyboardShortcutDialog(
+                  keys: keys,
+                  oldShortcut: oldShortcut,
+                ),
+              );
+            },
+          ),
         ).then((shortcut) {
           keys.clear();
           model.setShortcut(widget.shortcutId, shortcut ?? oldShortcut);
+          model.ungrabKeyboard();
         });
       },
     );
@@ -127,33 +131,40 @@ class KeyboardShortcutDialog extends StatelessWidget {
       ),
       actions: [
         OutlinedButton(
-            onPressed: () {
-              Navigator.of(context).pop(oldShortcut);
-            },
-            child: const Text('Cancel')),
+          onPressed: () {
+            Navigator.of(context).pop(oldShortcut);
+          },
+          child: const Text('Cancel'),
+        ),
         ElevatedButton(
           child: const Text('Confirm'),
-          onPressed: () {
-            final keyBuffer = StringBuffer();
-            for (var key in keys) {
-              var keyLabel = key.keyLabel;
-              if (keyLabel == 'Alt Left' ||
-                  keyLabel == 'Control Left' ||
-                  keyLabel == 'Meta Left' ||
-                  keyLabel == 'Shift Left') {
-                keyLabel = '<' + keyLabel.replaceAll(' Left', '') + '>';
-              } else if (keyLabel == 'Alt Right' ||
-                  keyLabel == 'Control Right' ||
-                  keyLabel == 'Meta Right' ||
-                  keyLabel == 'Shift Right') {
-                keyLabel = '<' + keyLabel.replaceAll(' Right', '') + '>';
-              }
-              keyBuffer.write(keyLabel);
-            }
-            Navigator.of(context).pop([keyBuffer.toString()]);
-          },
+          onPressed: () => Navigator.of(context).pop([processKeys(keys)]),
         )
       ],
     );
+  }
+
+  String processKeys(List<LogicalKeyboardKey> keys) {
+    final keyBuffer = StringBuffer();
+    for (final key in keys) {
+      var keyLabel = key.keyLabel;
+      if (keyLabel == 'Alt Left' ||
+          keyLabel == 'Control Left' ||
+          keyLabel == 'Meta Left' ||
+          keyLabel == 'Super Left' ||
+          keyLabel == 'Shift Left') {
+        keyLabel = '<' + keyLabel.replaceAll(' Left', '') + '>';
+      } else if (keyLabel == 'Alt Right' ||
+          keyLabel == 'Control Right' ||
+          keyLabel == 'Meta Right' ||
+          keyLabel == 'Super Right' ||
+          keyLabel == 'Shift Right') {
+        keyLabel = '<' + keyLabel.replaceAll(' Right', '') + '>';
+      } else if (keyLabel == 'Meta' || keyLabel == 'Super') {
+        keyLabel = '<$keyLabel>';
+      }
+      keyBuffer.write(keyLabel);
+    }
+    return keyBuffer.toString();
   }
 }

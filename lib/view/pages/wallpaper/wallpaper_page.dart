@@ -6,7 +6,9 @@ import 'package:provider/provider.dart';
 import 'package:settings/constants.dart';
 import 'package:settings/l10n/l10n.dart';
 import 'package:settings/services/settings_service.dart';
+import 'package:settings/services/display/display_service.dart';
 import 'package:settings/utils.dart';
+import 'package:settings/view/pages/settings_page.dart';
 import 'package:settings/view/pages/wallpaper/color_shading_option_row.dart';
 import 'package:settings/view/pages/wallpaper/wallpaper_model.dart';
 import 'package:yaru_icons/yaru_icons.dart';
@@ -26,9 +28,12 @@ class WallpaperPage extends StatelessWidget {
   const WallpaperPage({Key? key}) : super(key: key);
 
   static Widget create(BuildContext context) {
-    final service = Provider.of<SettingsService>(context, listen: false);
+    final settingsService =
+        Provider.of<SettingsService>(context, listen: false);
+    final displayService = Provider.of<DisplayService>(context, listen: false);
+
     return ChangeNotifierProvider<WallpaperModel>(
-      create: (_) => WallpaperModel(service),
+      create: (_) => WallpaperModel(settingsService, displayService),
       child: const WallpaperPage(),
     );
   }
@@ -36,6 +41,7 @@ class WallpaperPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final model = context.watch<WallpaperModel>();
+
     const headlineInsets =
         EdgeInsets.only(top: 30, left: 10, right: 10, bottom: 10);
 
@@ -43,36 +49,49 @@ class WallpaperPage extends StatelessWidget {
         ? model.pictureUri
         : model.pictureUriDark;
 
-    return YaruPage(
+    return SettingsPage(
       children: [
-        YaruRow(
-            width: kDefaultWidth,
-            enabled: true,
-            trailingWidget: Text(context.l10n.wallpaperPageBackgroundModeLabel),
-            actionWidget: Row(
+        SizedBox(
+          width: kDefaultWidth,
+          child: YaruTile(
+            title: Text(context.l10n.wallpaperPageBackgroundModeLabel),
+            trailing: Row(
               children: [
-                DropdownButton<WallpaperMode>(
-                    value: model.wallpaperMode,
-                    onChanged: (value) => model.setWallpaperMode(value!),
-                    items: [
-                      DropdownMenuItem(
-                        child: Text(context
-                            .l10n.wallpaperPageBackgroundModeColoredBackground),
-                        value: WallpaperMode.solid,
-                      ),
-                      DropdownMenuItem(
-                        child: Text(
-                            context.l10n.wallpaperPageBackgroundModeWallpaper),
-                        value: WallpaperMode.custom,
-                      ),
-                      DropdownMenuItem(
-                        child: Text(context
-                            .l10n.wallpaperPageBackgroundModeImageOfTheDay),
-                        value: WallpaperMode.imageOfTheDay,
-                      ),
-                    ]),
+                YaruPopupMenuButton(
+                  child: Text(model.wallpaperMode.localize(context.l10n)),
+                  initialValue: model.wallpaperMode,
+                  itemBuilder: (context) {
+                    return [
+                      for (final mode in WallpaperMode.values)
+                        PopupMenuItem<WallpaperMode>(
+                          child: Text(mode.localize(context.l10n)),
+                          value: mode,
+                          onTap: () => model.setWallpaperMode(mode),
+                        )
+                    ];
+                  },
+                ),
               ],
-            )),
+            ),
+          ),
+        ),
+        SizedBox(
+          width: kDefaultWidth,
+          child: AspectRatio(
+            aspectRatio: model.aspectRatio,
+            child: pictureUri.isEmpty
+                ? ChangeNotifierProvider.value(
+                    value: model,
+                    child: const _ColoredBackground(),
+                  )
+                : YaruSelectableContainer(
+                    child: _WallpaperImage(
+                      path: pictureUri.replaceAll(gnomeWallpaperSuffix, ''),
+                    ),
+                    selected: false,
+                  ),
+          ),
+        ),
         if (model.wallpaperMode == WallpaperMode.solid)
           ColorShadingOptionRow(
             width: kDefaultWidth,
@@ -82,50 +101,73 @@ class WallpaperPage extends StatelessWidget {
             },
             value: model.colorShadingType,
           ),
-        SizedBox(
-          width: kDefaultWidth,
-          child: pictureUri.isEmpty
-              ? ChangeNotifierProvider.value(
-                  value: model,
-                  child: const _ColoredBackground(),
-                )
-              : YaruSelectableContainer(
-                  child: _WallpaperImage(
-                      path: pictureUri.replaceAll(gnomeWallpaperSuffix, '')),
-                  selected: false),
-        ),
         if (model.wallpaperMode == WallpaperMode.imageOfTheDay)
-          //TODO: Add the title and copyright info
-          YaruRow(
-            enabled: true,
-            leadingWidget:
-                Text(context.l10n.wallpaperPageBackgroundModeImageOfTheDay),
-            trailingWidget: DropdownButton<ImageOfTheDayProvider>(
-                value: model.imageOfTheDayProvider,
-                onChanged: (value) => model.setUrlWallpaperProvider(value!),
-                items: const [
-                  DropdownMenuItem(
-                    child: Text('Bing'),
-                    value: ImageOfTheDayProvider.bing,
+          Column(
+            children: [
+              SizedBox(
+                width: kDefaultWidth,
+                child: Align(
+                  alignment: AlignmentDirectional.centerStart,
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 5),
+                    child: Text(
+                      model.caption,
+                      style: Theme.of(context).textTheme.caption!.copyWith(
+                            fontStyle: FontStyle.italic,
+                          ),
+                    ),
                   ),
-                  DropdownMenuItem(
-                    child: Text('Nasa'),
-                    value: ImageOfTheDayProvider.nasa,
+                ),
+              ),
+              const SizedBox(
+                height: 10,
+              ),
+              SizedBox(
+                width: kDefaultWidth,
+                child: YaruTile(
+                  leading: Text(
+                    context.l10n.wallpaperPageBackgroundModeImageOfTheDay,
                   ),
-                ]),
-            actionWidget: YaruOptionButton(
-              onPressed: () async {
-                await model.refreshUrlWallpaper();
-                if (model.errorMessage.isNotEmpty) {
-                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                      content: Text(
-                    model.errorMessage,
-                    style: TextStyle(color: Theme.of(context).primaryColor),
-                  )));
-                }
-              },
-              iconData: YaruIcons.refresh,
-            ),
+                  title: YaruPopupMenuButton<ImageOfTheDayProvider>(
+                    child: Text(
+                      model.imageOfTheDayProvider.localize(context.l10n),
+                    ),
+                    initialValue: model.imageOfTheDayProvider,
+                    itemBuilder: (context) {
+                      return [
+                        for (final provider in ImageOfTheDayProvider.values)
+                          PopupMenuItem(
+                            value: provider,
+                            onTap: () =>
+                                model.setUrlWallpaperProvider(provider),
+                            child: Text(
+                              provider.localize(context.l10n),
+                            ),
+                          )
+                      ];
+                    },
+                  ),
+                  trailing: YaruOptionButton(
+                    onPressed: () async {
+                      await model.refreshUrlWallpaper();
+                      if (model.errorMessage.isNotEmpty) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(
+                              model.errorMessage,
+                              style: TextStyle(
+                                color: Theme.of(context).primaryColor,
+                              ),
+                            ),
+                          ),
+                        );
+                      }
+                    },
+                    child: const Icon(YaruIcons.refresh),
+                  ),
+                ),
+              ),
+            ],
           ),
         if (model.wallpaperMode == WallpaperMode.custom)
           Column(
@@ -137,32 +179,38 @@ class WallpaperPage extends StatelessWidget {
                 child: Text(context.l10n.wallpaperPageYourWallpapersHeadline),
               ),
               FutureBuilder<List<String>?>(
-                  future: model.customBackgrounds,
-                  builder: (context, snapshot) {
-                    if (snapshot.hasData) {
-                      return _WallpaperGrid(
-                          data: snapshot.data!, customizableGrid: true);
-                    } else {
-                      return const _AddWallpaperTile();
-                    }
-                  }),
+                future: model.customBackgrounds,
+                builder: (context, snapshot) {
+                  if (snapshot.hasData) {
+                    return _WallpaperGrid(
+                      data: snapshot.data!,
+                      customizableGrid: true,
+                    );
+                  } else {
+                    return const _AddWallpaperTile();
+                  }
+                },
+              ),
               Padding(
                 padding: headlineInsets,
                 child:
                     Text(context.l10n.wallpaperPageDefaultWallpapersHeadline),
               ),
               FutureBuilder<List<String>?>(
-                  future: model.preInstalledBackgrounds,
-                  builder: (context, snapshot) {
-                    if (snapshot.hasData) {
-                      return _WallpaperGrid(
-                          data: snapshot.data!, customizableGrid: false);
-                    } else {
-                      return const Center(
-                        child: CircularProgressIndicator(),
-                      );
-                    }
-                  }),
+                future: model.preInstalledBackgrounds,
+                builder: (context, snapshot) {
+                  if (snapshot.hasData) {
+                    return _WallpaperGrid(
+                      data: snapshot.data!,
+                      customizableGrid: false,
+                    );
+                  } else {
+                    return const Center(
+                      child: YaruCircularProgressIndicator(),
+                    );
+                  }
+                },
+              ),
             ],
           ),
       ],
@@ -182,7 +230,7 @@ class _WallpaperImage extends StatelessWidget {
     return Image.file(
       File(path),
       filterQuality: FilterQuality.none,
-      fit: BoxFit.fill,
+      fit: BoxFit.cover,
       cacheHeight: height,
     );
   }
@@ -199,12 +247,14 @@ class _AddWallpaperTile extends StatelessWidget {
       child: InkWell(
         borderRadius: BorderRadius.circular(8),
         onTap: () async {
-          final picPath = await openFile(acceptedTypeGroups: [
-            XTypeGroup(
-              label: 'images',
-              extensions: <String>['jpg', 'png'],
-            )
-          ]);
+          final picPath = await openFile(
+            acceptedTypeGroups: [
+              const XTypeGroup(
+                label: 'images',
+                extensions: <String>['jpg', 'png'],
+              )
+            ],
+          );
           if (null != picPath) {
             if (Theme.of(context).brightness == Brightness.light) {
               model.pictureUri = picPath.path;
@@ -234,13 +284,34 @@ class _AddWallpaperTile extends StatelessWidget {
   }
 }
 
-class _WallpaperGrid extends StatelessWidget {
-  const _WallpaperGrid(
-      {Key? key, required this.data, required this.customizableGrid})
-      : super(key: key);
+class _WallpaperGrid extends StatefulWidget {
+  const _WallpaperGrid({
+    Key? key,
+    required this.data,
+    required this.customizableGrid,
+  }) : super(key: key);
 
   final List<String> data;
   final bool customizableGrid;
+
+  @override
+  State<_WallpaperGrid> createState() => _WallpaperGridState();
+}
+
+class _WallpaperGridState extends State<_WallpaperGrid> {
+  late ScrollController _controller;
+
+  @override
+  void initState() {
+    _controller = ScrollController();
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -250,6 +321,7 @@ class _WallpaperGrid extends StatelessWidget {
         : model.pictureUriDark;
 
     return GridView(
+      controller: _controller,
       gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
         maxCrossAxisExtent: 180,
         childAspectRatio: 16 / 10,
@@ -259,35 +331,36 @@ class _WallpaperGrid extends StatelessWidget {
       shrinkWrap: true,
       scrollDirection: Axis.vertical,
       children: <Widget>[
-            if (customizableGrid)
+            if (widget.customizableGrid)
               ChangeNotifierProvider.value(
                 value: model,
                 child: const _AddWallpaperTile(),
               )
           ] +
-          data
-              .map((picPathString) => Stack(
-                    fit: StackFit.expand,
-                    children: [
-                      YaruSelectableContainer(
-                          child:
-                              _WallpaperImage(path: picPathString, height: 90),
-                          onTap: () {
-                            if (Theme.of(context).brightness ==
-                                Brightness.light) {
-                              model.pictureUri = picPathString;
-                            } else {
-                              model.pictureUriDark = picPathString;
-                            }
-                          },
-                          selected: pictureUri.contains(picPathString)),
-                      if (customizableGrid)
-                        ChangeNotifierProvider.value(
-                          value: model,
-                          child: _RemoveWallpaperButton(path: picPathString),
-                        ),
-                    ],
-                  ))
+          widget.data
+              .map(
+                (picPathString) => Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    YaruSelectableContainer(
+                      child: _WallpaperImage(path: picPathString, height: 90),
+                      onTap: () {
+                        if (Theme.of(context).brightness == Brightness.light) {
+                          model.pictureUri = picPathString;
+                        } else {
+                          model.pictureUriDark = picPathString;
+                        }
+                      },
+                      selected: pictureUri.contains(picPathString),
+                    ),
+                    if (widget.customizableGrid)
+                      ChangeNotifierProvider.value(
+                        value: model,
+                        child: _RemoveWallpaperButton(path: picPathString),
+                      ),
+                  ],
+                ),
+              )
               .toList(),
     );
   }

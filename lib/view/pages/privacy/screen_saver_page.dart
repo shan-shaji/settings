@@ -6,7 +6,10 @@ import 'package:settings/services/settings_service.dart';
 import 'package:settings/view/duration_dropdown_button.dart';
 import 'package:settings/view/pages/power/power_settings.dart';
 import 'package:settings/view/pages/privacy/screen_saver_model.dart';
+import 'package:settings/view/pages/settings_page.dart';
 import 'package:settings/view/section_description.dart';
+import 'package:settings/view/settings_section.dart';
+import 'package:yaru_settings/yaru_settings.dart';
 import 'package:yaru_widgets/yaru_widgets.dart';
 
 class ScreenSaverPage extends StatelessWidget {
@@ -21,54 +24,57 @@ class ScreenSaverPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final model = context.watch<ScreenSaverModel>();
-    return YaruPage(
+    return SettingsPage(
       children: [
         SectionDescription(
-            width: kDefaultWidth, text: context.l10n.screenSaverDescription),
-        YaruSection(width: kDefaultWidth, children: [
-          YaruRow(
-            width: kDefaultWidth,
-            enabled: model.idleDelay != null,
-            trailingWidget: Text(context.l10n.screenSaverTimerLabel),
-            description: context.l10n.screenSaverTimerDescription,
-            actionWidget: DurationDropdownButton(
-              value: model.idleDelay,
-              values: IdleDelay.values,
-              onChanged: model.setIdleDelay,
+          width: kDefaultWidth,
+          text: context.l10n.screenSaverDescription,
+        ),
+        SettingsSection(
+          width: kDefaultWidth,
+          children: [
+            YaruTile(
+              enabled: model.idleDelay != null,
+              title: Text(context.l10n.screenSaverTimerLabel),
+              subtitle: Text(context.l10n.screenSaverTimerDescription),
+              trailing: DurationDropdownButton(
+                value: model.idleDelay,
+                values: IdleDelay.values,
+                onChanged: model.setIdleDelay,
+              ),
             ),
-          ),
-          YaruSwitchRow(
+            YaruSwitchRow(
               enabled: model.lockEnabled != null,
-              width: kDefaultWidth,
               trailingWidget: Text(context.l10n.screenSaverAutoScreenLockLabel),
               value: model.lockEnabled,
-              onChanged: (v) => model.lockEnabled = v),
-          YaruRow(
-            width: kDefaultWidth,
-            enabled: model.lockDelay != null,
-            trailingWidget: Text(context.l10n.screenSaverAutoDelayLabel),
-            description: context.l10n.screenSaverAutoDelayDescription,
-            actionWidget: DurationDropdownButton(
-              value: model.lockDelay,
-              values: ScreenLockDelay.values,
-              onChanged: (v) => model.lockDelay = v!.toInt(),
+              onChanged: (v) => model.lockEnabled = v,
             ),
-          ),
-          YaruSwitchRow(
+            YaruTile(
+              enabled: model.lockDelay != null,
+              title: Text(context.l10n.screenSaverAutoDelayLabel),
+              subtitle: Text(context.l10n.screenSaverAutoDelayDescription),
+              trailing: DurationDropdownButton(
+                value: model.lockDelay,
+                values: ScreenLockDelay.values,
+                onChanged: (v) => model.lockDelay = v!.toInt(),
+              ),
+            ),
+            YaruSwitchRow(
               enabled: model.ubuntuLockOnSuspend != null,
-              width: kDefaultWidth,
               trailingWidget:
                   Text(context.l10n.screenSaverLockScreenOnSuspendLabel),
               value: model.ubuntuLockOnSuspend,
-              onChanged: (v) => model.ubuntuLockOnSuspend = v),
-          YaruSwitchRow(
+              onChanged: (v) => model.ubuntuLockOnSuspend = v,
+            ),
+            YaruSwitchRow(
               enabled: model.showOnLockScreen != null,
-              width: kDefaultWidth,
               trailingWidget:
                   Text(context.l10n.screenSaverNotificationsOnLockScreen),
               value: model.showOnLockScreen,
-              onChanged: (v) => model.showOnLockScreen = v),
-        ])
+              onChanged: (v) => model.showOnLockScreen = v,
+            ),
+          ],
+        )
       ],
     );
   }

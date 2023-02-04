@@ -3,7 +3,10 @@ import 'package:provider/provider.dart';
 import 'package:settings/constants.dart';
 import 'package:settings/l10n/l10n.dart';
 import 'package:settings/view/pages/accessibility/accessibility_model.dart';
+import 'package:settings/view/pages/settings_simple_dialog.dart';
+import 'package:settings/view/settings_section.dart';
 import 'package:yaru_icons/yaru_icons.dart';
+import 'package:yaru_settings/yaru_settings.dart';
 import 'package:yaru_widgets/yaru_widgets.dart';
 
 class TypingSection extends StatelessWidget {
@@ -12,9 +15,9 @@ class TypingSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final model = context.watch<AccessibilityModel>();
-    return YaruSection(
+    return SettingsSection(
       width: kDefaultWidth,
-      headline: context.l10n.typing,
+      headline: Text(context.l10n.typing),
       children: [
         YaruSwitchRow(
           trailingWidget: Text(context.l10n.screenKeyboard),
@@ -36,7 +39,7 @@ class _RepeatKeys extends StatelessWidget {
   Widget build(BuildContext context) {
     final model = context.watch<AccessibilityModel>();
     return YaruExtraOptionRow(
-      iconData: YaruIcons.settings,
+      iconData: YaruIcons.gear,
       actionLabel: context.l10n.repeatKeys,
       actionDescription: context.l10n.repeatKeysDescription,
       value: model.keyboardRepeat,
@@ -58,7 +61,7 @@ class _RepeatKeysSettings extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final model = context.watch<AccessibilityModel>();
-    return YaruSimpleDialog(
+    return SettingsSimpleDialog(
       width: kDefaultWidth,
       title: context.l10n.repeatKeys,
       closeIconData: YaruIcons.window_close,
@@ -93,7 +96,7 @@ class _CursorBlinking extends StatelessWidget {
   Widget build(BuildContext context) {
     final model = context.watch<AccessibilityModel>();
     return YaruExtraOptionRow(
-      iconData: YaruIcons.settings,
+      iconData: YaruIcons.gear,
       actionLabel: context.l10n.cursorBlinking,
       actionDescription: context.l10n.cursorBlinkingDescription,
       value: model.cursorBlink,
@@ -115,7 +118,7 @@ class _CursorBlinkingSettings extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final model = context.watch<AccessibilityModel>();
-    return YaruSimpleDialog(
+    return SettingsSimpleDialog(
       width: kDefaultWidth,
       title: context.l10n.cursorBlinking,
       closeIconData: YaruIcons.window_close,
@@ -141,10 +144,10 @@ class _TypingAssist extends StatelessWidget {
   Widget build(BuildContext context) {
     final model = context.watch<AccessibilityModel>();
 
-    return YaruRow(
+    return YaruTile(
       enabled: model.typingAssistAvailable,
-      trailingWidget: Text(context.l10n.typingAssistAccessX),
-      actionWidget: Row(
+      title: Text(context.l10n.typingAssistAccessX),
+      trailing: Row(
         children: [
           Text(model.typingAssistString),
           const SizedBox(width: 24.0),
@@ -160,7 +163,7 @@ class _TypingAssist extends StatelessWidget {
                   child: const _TypingAssistSettings(),
                 ),
               ),
-              child: const Icon(YaruIcons.settings),
+              child: const Icon(YaruIcons.gear),
             ),
           ),
         ],
@@ -175,7 +178,7 @@ class _TypingAssistSettings extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final model = context.watch<AccessibilityModel>();
-    return YaruSimpleDialog(
+    return SettingsSimpleDialog(
       width: kDefaultWidth,
       title: context.l10n.typingAssist,
       closeIconData: YaruIcons.window_close,

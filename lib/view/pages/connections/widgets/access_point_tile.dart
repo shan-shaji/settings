@@ -16,37 +16,35 @@ class AccessPointTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AnimatedBuilder(
-        animation: accessPointModel,
-        builder: (_, __) {
-          return InkWell(
-            borderRadius: BorderRadius.circular(4),
-            onTap: onTap,
-            child: YaruRow(
-              enabled: true,
-              trailingWidget: Row(
-                children: [
-                  Icon(accessPointModel.wifiIconData),
-                  const SizedBox(
-                    width: 10,
-                  ),
-                  Text(accessPointModel.name),
-                ],
-              ),
-              actionWidget: Row(
-                children: [
-                  Icon(accessPointModel.isActiveIconData),
-                  const SizedBox(width: 8.0),
-                  YaruOptionButton(
-                    onPressed: () {
-                      // TODO: navigate to wifi access point details dialog
-                    },
-                    iconData: YaruIcons.settings,
-                  ),
-                ],
-              ),
+      animation: accessPointModel,
+      builder: (_, __) {
+        return InkWell(
+          borderRadius: BorderRadius.circular(4),
+          onTap: onTap,
+          child: YaruTile(
+            title: Row(
+              children: [
+                Icon(accessPointModel.wifiIconData),
+                const SizedBox(
+                  width: 10,
+                ),
+                Text(accessPointModel.name),
+              ],
             ),
-          );
-        });
+            trailing: Row(
+              children: [
+                Icon(accessPointModel.isActiveIconData),
+                const SizedBox(width: 8.0),
+                YaruOptionButton(
+                  onPressed: () {},
+                  child: const Icon(YaruIcons.gear),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
   }
 }
 

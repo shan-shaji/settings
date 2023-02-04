@@ -6,9 +6,11 @@ import 'package:settings/constants.dart';
 import 'package:settings/l10n/l10n.dart';
 import 'package:settings/utils.dart';
 import 'package:settings/view/pages/accessibility/accessibility_model.dart';
-import 'package:yaru_widgets/yaru_widgets.dart';
-
+import 'package:settings/view/pages/settings_simple_dialog.dart';
+import 'package:settings/view/settings_section.dart';
 import 'package:yaru_icons/yaru_icons.dart';
+import 'package:yaru_settings/yaru_settings.dart';
+import 'package:yaru_widgets/yaru_widgets.dart';
 
 class SeeingSection extends StatelessWidget {
   const SeeingSection({Key? key}) : super(key: key);
@@ -16,9 +18,9 @@ class SeeingSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final model = context.watch<AccessibilityModel>();
-    return YaruSection(
+    return SettingsSection(
       width: kDefaultWidth,
-      headline: context.l10n.seeing,
+      headline: Text(context.l10n.seeing),
       children: [
         YaruSwitchRow(
           trailingWidget: Text(context.l10n.highContrast),
@@ -32,7 +34,7 @@ class SeeingSection extends StatelessWidget {
         ),
         const _CursorSize(),
         YaruExtraOptionRow(
-          iconData: YaruIcons.settings,
+          iconData: YaruIcons.gear,
           actionLabel: context.l10n.zoom,
           value: model.zoom,
           onChanged: (value) => model.setZoom(value),
@@ -67,14 +69,14 @@ class _CursorSize extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final model = context.watch<AccessibilityModel>();
-    return YaruRow(
+    return YaruTile(
       enabled: model.cursorSize != null,
-      trailingWidget: Text(context.l10n.cursorSize),
-      description: context.l10n.cursorSizeDescription,
-      actionWidget: Row(
+      title: Text(context.l10n.cursorSize),
+      subtitle: Text(context.l10n.cursorSizeDescription),
+      trailing: Row(
         children: [
           const SizedBox(width: 24.0),
-          Text(model.cursorSizeString()),
+          Text(model.cursorSize?.localize(context.l10n) ?? ''),
           const SizedBox(width: 24.0),
           SizedBox(
             width: 40,
@@ -88,7 +90,7 @@ class _CursorSize extends StatelessWidget {
                   child: const _CursorSizeSettings(),
                 ),
               ),
-              child: const Icon(YaruIcons.settings),
+              child: const Icon(YaruIcons.gear),
             ),
           ),
         ],
@@ -103,35 +105,35 @@ class _CursorSizeSettings extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final model = context.watch<AccessibilityModel>();
-    return YaruSimpleDialog(
+    return SettingsSimpleDialog(
       width: kDefaultWidth / 2,
       title: context.l10n.cursorSize,
       closeIconData: YaruIcons.window_close,
       children: [
         _CursorButton(
           imageName: 'assets/images/cursor/left_ptr_24px.png',
-          onPressed: () => model.setCursorSize(24),
-          selected: model.cursorSize == 24,
+          onPressed: () => model.cursorSize = CursorSize.normal,
+          selected: model.cursorSize == CursorSize.normal,
         ),
         _CursorButton(
           imageName: 'assets/images/cursor/left_ptr_32px.png',
-          onPressed: () => model.setCursorSize(32),
-          selected: model.cursorSize == 32,
+          onPressed: () => model.cursorSize = CursorSize.medium,
+          selected: model.cursorSize == CursorSize.medium,
         ),
         _CursorButton(
           imageName: 'assets/images/cursor/left_ptr_48px.png',
-          onPressed: () => model.setCursorSize(48),
-          selected: model.cursorSize == 48,
+          onPressed: () => model.cursorSize = CursorSize.large,
+          selected: model.cursorSize == CursorSize.large,
         ),
         _CursorButton(
           imageName: 'assets/images/cursor/left_ptr_64px.png',
-          onPressed: () => model.setCursorSize(64),
-          selected: model.cursorSize == 64,
+          onPressed: () => model.cursorSize = CursorSize.larger,
+          selected: model.cursorSize == CursorSize.larger,
         ),
         _CursorButton(
           imageName: 'assets/images/cursor/left_ptr_96px.png',
-          onPressed: () => model.setCursorSize(96),
-          selected: model.cursorSize == 96,
+          onPressed: () => model.cursorSize = CursorSize.largest,
+          selected: model.cursorSize == CursorSize.largest,
         ),
       ],
     );
@@ -179,7 +181,7 @@ class _ZoomSettings extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return YaruSimpleDialog(
+    return SettingsSimpleDialog(
       width: kDefaultWidth,
       title: context.l10n.zoomOptions,
       closeIconData: YaruIcons.window_close,
@@ -219,10 +221,10 @@ class _MagnifierOptions extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        YaruRow(
+        YaruTile(
           enabled: model.magFactor != null,
-          trailingWidget: Text(context.l10n.magnification),
-          actionWidget: SizedBox(
+          title: Text(context.l10n.magnification),
+          trailing: SizedBox(
             height: 40,
             width: 150,
             child: SpinBox(
@@ -272,17 +274,24 @@ class _MagnifierPositionOptions extends StatelessWidget {
             value: false,
             groupValue: model.lensMode,
             onChanged: (bool? value) => model.setLensMode(value!),
-            secondary: DropdownButton<String>(
-              onChanged: !model.screenPartEnabled
-                  ? null
-                  : (value) => model.setScreenPosition(value!),
-              value: model.screenPosition,
-              items: [
-                for (var item in AccessibilityModel.screenPositions)
-                  DropdownMenuItem(
-                      child: Text(item.toLowerCase().replaceAll('-', ' ')),
-                      value: item)
-              ],
+            secondary: YaruPopupMenuButton<ScreenPosition>(
+              enabled: model.screenPosition != null,
+              initialValue: model.screenPosition,
+              itemBuilder: (_) {
+                return [
+                  for (var item in ScreenPosition.values)
+                    PopupMenuItem(
+                      child: Text(item.localize(context.l10n)),
+                      value: item,
+                      onTap: !model.screenPartEnabled
+                          ? null
+                          : () => model.screenPosition = item,
+                    )
+                ];
+              },
+              child: Text(
+                model.screenPosition?.localize(context.l10n) ?? '',
+              ),
             ),
           ),
           Padding(
@@ -354,7 +363,7 @@ class _RadioRow<T> extends StatelessWidget {
 
     return Row(
       children: [
-        Radio(
+        YaruRadio(
           value: _value,
           groupValue: groupValue,
           onChanged: _enabled ? onChanged : null,
@@ -421,18 +430,19 @@ class _CrosshairsOptions extends StatelessWidget {
             showValue: false,
           ),
         ),
-        YaruRow(
+        YaruTile(
           enabled: model.crossHairsColor != null,
-          trailingWidget: Text(context.l10n.color),
-          actionWidget: YaruColorPickerButton(
-            enabled: model.crossHairsColor != null,
+          title: Text(context.l10n.color),
+          trailing: YaruOptionButton.color(
             color: colorFromHex(model.crossHairsColor ?? '#FF0000'),
-            onPressed: () async {
-              final colorBeforeDialog = model.crossHairsColor;
-              if (!(await colorPickerDialog(context))) {
-                model.setCrossHairsColor(colorBeforeDialog!);
-              }
-            },
+            onPressed: model.crossHairsColor != null
+                ? () async {
+                    final colorBeforeDialog = model.crossHairsColor;
+                    if (!(await colorPickerDialog(context))) {
+                      model.setCrossHairsColor(colorBeforeDialog!);
+                    }
+                  }
+                : null,
           ),
         ),
       ],

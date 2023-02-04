@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:settings/l10n/l10n.dart';
-import 'package:yaru_widgets/yaru_widgets.dart';
+import 'package:settings/view/pages/settings_page.dart';
 
 class SearchPage extends StatelessWidget {
   const SearchPage({Key? key}) : super(key: key);
@@ -17,7 +17,8 @@ class SearchPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return YaruPage(
-        children: [Center(child: Text(context.l10n.searchPageTitle))]);
+    return SettingsPage(
+      children: [Center(child: Text(context.l10n.searchPageTitle))],
+    );
   }
 }

@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:settings/constants.dart';
 import 'package:settings/l10n/l10n.dart';
+import 'package:settings/view/pages/settings_page.dart';
+import 'package:settings/view/settings_section.dart';
 import 'package:yaru_icons/yaru_icons.dart';
-import 'package:yaru_widgets/yaru_widgets.dart';
+import 'package:yaru_settings/yaru_settings.dart';
 
 import 'data/authentication.dart';
 import 'models/wifi_model.dart';
@@ -17,10 +19,11 @@ class WifiDevicesContent extends StatelessWidget {
   Widget build(BuildContext context) {
     final wifiModel = context.watch<WifiModel>();
 
-    return YaruPage(
+    return SettingsPage(
       children: [
-        YaruSwitchRow(
-            width: kDefaultWidth,
+        SizedBox(
+          width: kDefaultWidth,
+          child: YaruSwitchRow(
             enabled: wifiModel.isWifiDeviceAvailable,
             trailingWidget: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -31,44 +34,50 @@ class WifiDevicesContent extends StatelessWidget {
                       ? context.l10n.connected
                       : context.l10n.disonnected,
                   style: TextStyle(
-                      color: Theme.of(context)
-                          .colorScheme
-                          .onSurface
-                          .withOpacity(0.5)),
+                    color: Theme.of(context)
+                        .colorScheme
+                        .onSurface
+                        .withOpacity(0.5),
+                  ),
                 )
               ],
             ),
             onChanged: (newValue) => wifiModel.toggleWifi(newValue),
-            value: wifiModel.isWifiEnabled),
+            value: wifiModel.isWifiEnabled,
+          ),
+        ),
         if (wifiModel.isWifiEnabled)
           for (final wifiDevice in wifiModel.wifiDevices)
             AnimatedBuilder(
-                animation: wifiDevice,
-                builder: (_, __) {
-                  return YaruSection(
-                    width: kDefaultWidth,
-                    headline: context.l10n.connectionsPageHeadline,
-                    children: [
-                      for (final accessPoint in wifiDevice.accesPoints)
-                        AccessPointTile(
-                          accessPointModel: accessPoint,
-                          onTap: () {
-                            wifiModel.connectToAccesPoint(
-                              accessPoint,
-                              wifiDevice,
-                              (wifiDevice, accessPoint) =>
-                                  authenticate(context, accessPoint),
+              animation: wifiDevice,
+              builder: (_, __) {
+                return SettingsSection(
+                  width: kDefaultWidth,
+                  headline: Text(context.l10n.connectionsPageHeadline),
+                  children: [
+                    for (final accessPoint in wifiDevice.accesPoints)
+                      AccessPointTile(
+                        accessPointModel: accessPoint,
+                        onTap: () {
+                          wifiModel.connectToAccesPoint(
+                            accessPoint,
+                            wifiDevice,
+                            (wifiDevice, accessPoint) =>
+                                authenticate(context, accessPoint),
+                          );
+                          if (wifiModel.errorMessage.isNotEmpty) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(wifiModel.errorMessage),
+                              ),
                             );
-                            if (wifiModel.errorMessage.isNotEmpty) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                      content: Text(wifiModel.errorMessage)));
-                            }
-                          },
-                        )
-                    ],
-                  );
-                })
+                          }
+                        },
+                      )
+                  ],
+                );
+              },
+            )
       ],
     );
   }

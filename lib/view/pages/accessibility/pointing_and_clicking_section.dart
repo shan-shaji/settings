@@ -3,9 +3,11 @@ import 'package:provider/provider.dart';
 import 'package:settings/constants.dart';
 import 'package:settings/l10n/l10n.dart';
 import 'package:settings/view/pages/accessibility/accessibility_model.dart';
-import 'package:yaru_widgets/yaru_widgets.dart';
-
+import 'package:settings/view/pages/settings_simple_dialog.dart';
+import 'package:settings/view/settings_section.dart';
 import 'package:yaru_icons/yaru_icons.dart';
+import 'package:yaru_settings/yaru_settings.dart';
+import 'package:yaru_widgets/yaru_widgets.dart';
 
 class PointingAndClickingSection extends StatelessWidget {
   const PointingAndClickingSection({Key? key}) : super(key: key);
@@ -13,9 +15,9 @@ class PointingAndClickingSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final model = context.watch<AccessibilityModel>();
-    return YaruSection(
+    return SettingsSection(
       width: kDefaultWidth,
-      headline: context.l10n.pointingAndClicking,
+      headline: Text(context.l10n.pointingAndClicking),
       children: [
         YaruSwitchRow(
           trailingWidget: Text(context.l10n.mouseKeys),
@@ -47,10 +49,10 @@ class _ClickAssist extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final model = context.watch<AccessibilityModel>();
-    return YaruRow(
+    return YaruTile(
       enabled: model.clickAssistAvailable,
-      trailingWidget: Text(context.l10n.clickAssist),
-      actionWidget: Row(
+      title: Text(context.l10n.clickAssist),
+      trailing: Row(
         children: [
           Text(model.clickAssistString),
           const SizedBox(width: 24.0),
@@ -66,7 +68,7 @@ class _ClickAssist extends StatelessWidget {
                   child: const _ClickAssistSettings(),
                 ),
               ),
-              child: const Icon(YaruIcons.settings),
+              child: const Icon(YaruIcons.gear),
             ),
           ),
         ],
@@ -81,15 +83,14 @@ class _ClickAssistSettings extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final model = context.watch<AccessibilityModel>();
-    return YaruSimpleDialog(
+    return SettingsSimpleDialog(
       width: kDefaultWidth,
       title: context.l10n.clickAssist,
       closeIconData: YaruIcons.window_close,
       children: [
         YaruSwitchRow(
           trailingWidget: Text(context.l10n.simulatedSecondaryClick),
-          actionDescription:
-              context.l10n.simulatedSecondaryClickDescription,
+          actionDescription: context.l10n.simulatedSecondaryClickDescription,
           value: model.simulatedSecondaryClick,
           onChanged: (value) => model.setSimulatedSecondaryClick(value),
         ),
